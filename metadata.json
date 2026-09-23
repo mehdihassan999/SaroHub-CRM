@@ -1,0 +1,6 @@
+{
+  "name": "SaroHub CRM",
+  "description": "Professional internal CRM and lead-management platform for SaroHub Technologies (Pvt) Ltd featuring duplicate protection, team ownership, follow-ups, CTO escalation, and AI assistance.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
