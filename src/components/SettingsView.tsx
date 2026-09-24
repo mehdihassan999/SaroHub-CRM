@@ -16,7 +16,16 @@ import {
 import { User, UserRole } from '../types/crm';
 
 export const SettingsView: React.FC = () => {
-  const { users, leads, reassignLead, updateLead, clearAllData, resetToDemoData } = useCRM();
+  const {
+    users,
+    leads,
+    currentUser,
+    setIsCreateInternModalOpen,
+    reassignLead,
+    updateLead,
+    clearAllData,
+    resetToDemoData,
+  } = useCRM();
 
   const [activeTab, setActiveTab] = useState<'users' | 'duplicate_rules' | 'data_management'>('users');
   const [reassignModalIntern, setReassignModalIntern] = useState<User | null>(null);
@@ -100,9 +109,24 @@ export const SettingsView: React.FC = () => {
       {/* User Management */}
       {activeTab === 'users' && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-900">Active SaroHub Team</h3>
-            <span className="text-xs text-slate-500">Safe Deactivation protects historical lead ownership</span>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Active SaroHub Team ({users.length})</h3>
+              <span className="text-xs text-slate-500">
+                Individual workspaces for interns; CEO & CTO have full executive permissions
+              </span>
+            </div>
+
+            {(currentUser.role === 'ceo' || currentUser.role === 'cto' || currentUser.role === 'admin') && (
+              <button
+                type="button"
+                onClick={() => setIsCreateInternModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs cursor-pointer transition"
+              >
+                <UserPlus className="h-4 w-4" />
+                + Create New Intern Account
+              </button>
+            )}
           </div>
 
           <div className="overflow-x-auto">

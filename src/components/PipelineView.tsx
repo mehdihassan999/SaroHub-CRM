@@ -38,7 +38,11 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onSelectLead, onOpen
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredLeads = leads.filter((lead) => {
-    const matchesOwner = selectedOwnerId === 'ALL' || lead.assignedInternId === selectedOwnerId;
+    const matchesOwner =
+      selectedOwnerId === 'ALL' ||
+      lead.assignedInternId === selectedOwnerId ||
+      lead.originalInternId === selectedOwnerId ||
+      lead.supportingMemberIds?.includes(selectedOwnerId);
     const matchesSearch =
       lead.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.contactPerson.toLowerCase().includes(searchTerm.toLowerCase());

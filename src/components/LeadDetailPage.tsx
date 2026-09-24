@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { LeadStatus } from '../types/crm';
 import { HandoverModal } from './HandoverModal';
+import { HandoverDossierModal } from './HandoverDossierModal';
 
 interface LeadDetailPageProps {
   leadId: string;
@@ -98,6 +99,7 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
   // Communication composer state
   const [commType, setCommType] = useState<'message' | 'note' | 'voice' | 'file' | 'link'>('message');
   const [commInput, setCommInput] = useState('');
+  const [isDossierOpen, setIsDossierOpen] = useState(false);
 
   if (!lead) {
     return (
@@ -288,17 +290,19 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
           </button>
 
           {activeHandover && (
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-bold ${
+            <button
+              onClick={() => setIsDossierOpen(true)}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer hover:opacity-90 ${
                 activeHandover.status === 'Accepted'
                   ? 'bg-emerald-100 text-emerald-800'
                   : 'bg-amber-100 text-amber-800'
               }`}
             >
+              <Sparkles className="h-3.5 w-3.5" />
               {activeHandover.status === 'Accepted'
-                ? `Lead handed over to ${activeHandover.handoverTo || 'CEO'} ✓`
-                : `Handover pending with ${activeHandover.handoverTo || 'CEO'}`}
-            </span>
+                ? `Handed over to ${activeHandover.handoverTo || 'CEO'} (Click to View Dossier)`
+                : `Handover pending with ${activeHandover.handoverTo || 'CEO'} (Inspect Dossier)`}
+            </button>
           )}
         </div>
 
@@ -316,6 +320,22 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
               <span>
                 Assigned to: <strong className="text-slate-800">{assignedUser?.name || 'Unassigned'}</strong>
               </span>
+              {lead.originalInternName && lead.originalInternName !== assignedUser?.name && (
+                <>
+                  <span>•</span>
+                  <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-medium border border-emerald-100">
+                    Sourced by: <strong>{lead.originalInternName}</strong> (Portfolio Saved)
+                  </span>
+                </>
+              )}
+              {lead.isHandedOverToCeo && (
+                <>
+                  <span>•</span>
+                  <span className="text-purple-800 bg-purple-50 px-2 py-0.5 rounded-md font-bold border border-purple-200">
+                    Handed Over to {lead.handedOverTo || 'Executive'}
+                  </span>
+                </>
+              )}
               <span>•</span>
               <div className="flex items-center gap-1.5">
                 <span>Status:</span>
@@ -814,6 +834,15 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
           isOpen={isHandoverOpen}
           onClose={() => setIsHandoverOpen(false)}
           lead={lead}
+        />
+      )}
+
+      {/* Handover Dossier Modal */}
+      {activeHandover && isDossierOpen && (
+        <HandoverDossierModal
+          isOpen={isDossierOpen}
+          onClose={() => setIsDossierOpen(false)}
+          handover={activeHandover}
         />
       )}
     </div>

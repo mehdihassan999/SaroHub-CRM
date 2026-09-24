@@ -16,8 +16,14 @@ import {
   AlertTriangle,
   Briefcase,
   ChevronRight,
+  MessageSquare,
+  Mic,
+  Video,
+  Sparkles,
+  MessageCircle,
 } from 'lucide-react';
-import { User, Lead } from '../types/crm';
+import { User, Lead, HandoverRequest } from '../types/crm';
+import { HandoverDossierModal } from './HandoverDossierModal';
 
 interface CeoDashboardProps {
   onSelectLead: (leadId: string) => void;
@@ -28,6 +34,7 @@ export const CeoDashboard: React.FC<CeoDashboardProps> = ({ onSelectLead, onNavi
   const { leads, users, handoverRequests, followUps, auditLogs } = useCRM();
 
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
+  const [selectedDossier, setSelectedDossier] = useState<HandoverRequest | null>(null);
 
   // Sales Pipeline aggregates
   const totalLeads = leads.length;
@@ -176,6 +183,115 @@ export const CeoDashboard: React.FC<CeoDashboardProps> = ({ onSelectLead, onNavi
           <span className="text-[10px] text-rose-500 font-semibold">Requires managerial nudge</span>
         </div>
       </div>
+
+      {/* Pending Deal Handovers for CEO Desk */}
+      {pendingHandovers.length > 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-2xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/60 pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-600 text-white shadow-xs">
+                <ArrowRightLeft className="h-4 w-4" />
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-amber-950">
+                  Deal Handovers Awaiting CEO Review ({pendingHandovers.length})
+                </h3>
+                <p className="text-[11px] text-amber-800">
+                  Qualified enterprise deals escalated by interns with complete chats, voice debriefs, and client requirements.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => onNavigateTab('handover_center')}
+              className="text-xs font-bold text-amber-900 hover:text-amber-950 underline flex items-center gap-1"
+            >
+              Open Handover Center <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {pendingHandovers.map((h) => {
+              const hLead = leads.find((l) => l.id === h.leadId);
+              const attCount = h.attachments?.length || 0;
+              const hasVoice = h.attachments?.some((a) => a.type === 'voice_note');
+              const hasVideo = h.attachments?.some((a) => a.type === 'video');
+              const rawPhone = (h.clientProfile?.phone || hLead?.phone || '').replace(/[^\d]/g, '');
+
+              return (
+                <div
+                  key={h.id}
+                  className="rounded-xl border border-amber-200/80 bg-white p-4 shadow-2xs space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="font-bold text-xs text-slate-900 line-clamp-1">
+                        {h.businessName}
+                      </span>
+                      <span className="rounded bg-amber-100 px-1.5 py-0.2 text-[10px] font-bold text-amber-800 shrink-0">
+                        {h.whatClientWants?.budget || h.brief?.budget || 'Deal'}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-500">
+                      Contact: <strong className="text-slate-700">{h.clientProfile?.contactPerson || hLead?.contactPerson}</strong> • Intern: {h.fromUserName}
+                    </p>
+
+                    <div className="rounded-lg bg-slate-50 p-2 text-[11px] font-medium text-slate-800 line-clamp-2">
+                      {h.whatClientWants?.coreNeed || h.brief?.requirementsSummary || h.summary || 'Client qualified for closing.'}
+                    </div>
+
+                    {/* Media pills */}
+                    <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                      {(h.previousChats || h.attachments?.some((a) => a.type === 'chat')) && (
+                        <span className="rounded bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-emerald-800 font-semibold flex items-center gap-0.5">
+                          <MessageSquare className="h-2.5 w-2.5" /> Chats
+                        </span>
+                      )}
+                      {hasVoice && (
+                        <span className="rounded bg-rose-50 border border-rose-200 px-1.5 py-0.5 text-rose-800 font-semibold flex items-center gap-0.5">
+                          <Mic className="h-2.5 w-2.5" /> Voice
+                        </span>
+                      )}
+                      {hasVideo && (
+                        <span className="rounded bg-blue-50 border border-blue-200 px-1.5 py-0.5 text-blue-800 font-semibold flex items-center gap-0.5">
+                          <Video className="h-2.5 w-2.5" /> Video
+                        </span>
+                      )}
+                      {attCount > 0 && (
+                        <span className="text-slate-400 font-medium">
+                          +{attCount} item(s)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                    {rawPhone && (
+                      <a
+                        href={`https://wa.me/${rawPhone}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                      </a>
+                    )}
+
+                    <button
+                      onClick={() => setSelectedDossier(h)}
+                      className="rounded-lg bg-slate-900 px-3 py-1 text-[11px] font-bold text-white hover:bg-slate-800 transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <Sparkles className="h-3 w-3 text-amber-400" />
+                      Inspect Dossier
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Intern Team Productivity Leaderboard (Prompt #12 & #31) */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs">
@@ -350,6 +466,16 @@ export const CeoDashboard: React.FC<CeoDashboardProps> = ({ onSelectLead, onNavi
           </div>
         )}
       </div>
+
+      {/* Handover Dossier Modal */}
+      {selectedDossier && (
+        <HandoverDossierModal
+          isOpen={!!selectedDossier}
+          onClose={() => setSelectedDossier(null)}
+          handover={selectedDossier}
+          onSelectLead={onSelectLead}
+        />
+      )}
     </div>
   );
 };

@@ -6,6 +6,9 @@ import {
   TechnicalRequest,
   HandoverRequest,
   HandoverAttachment,
+  HandoverClientProfile,
+  HandoverWhatClientWants,
+  AIChatIntelligence,
   FollowUpItem,
   NotificationItem,
   AuditLogItem,
@@ -14,6 +17,7 @@ import {
   LeadStatus,
   Priority,
   LeadTemperature,
+  UserRole,
 } from '../types/crm';
 import {
   INITIAL_USERS,
@@ -37,10 +41,45 @@ import {
 } from '../data/mockData';
 import { checkLeadDuplicates, DuplicateCheckResult } from '../utils/phoneNormalizer';
 
+/**
+ * Checks if a lead belongs to or should be visible to a given user.
+ * - CEO, CTO, and Admin have complete company-wide permission to all leads.
+ * - Interns see leads that they are assigned to, leads they originally created/collected,
+ *   leads they are supporting, and leads they have handed over to CEO/CTO.
+ *   This ensures after handover the leads stay completely saved with all details to that intern.
+ */
+export function isUserAssociatedWithLead(
+  lead: Lead,
+  user: User,
+  handovers: HandoverRequest[] = []
+): boolean {
+  if (user.role === 'ceo' || user.role === 'cto' || user.role === 'admin') {
+    return true;
+  }
+  if (lead.assignedInternId === user.id) return true;
+  if (lead.originalInternId === user.id) return true;
+  if (lead.supportingMemberIds && lead.supportingMemberIds.includes(user.id)) return true;
+  if (handovers.some((h) => h.leadId === lead.id && h.fromUserId === user.id)) return true;
+  return false;
+}
+
 interface CRMContextType {
   currentUser: User;
   users: User[];
   switchUser: (userId: string) => void;
+  createUser: (userData: {
+    name: string;
+    email: string;
+    phone?: string;
+    role?: UserRole;
+    title?: string;
+    avatar?: string;
+  }) => User;
+  updateUser: (userId: string, updates: Partial<User>) => void;
+  deleteUser: (userId: string) => boolean;
+
+  isCreateInternModalOpen: boolean;
+  setIsCreateInternModalOpen: (open: boolean) => void;
 
   leads: Lead[];
   addLead: (leadInput: Partial<Lead>, allowDuplicate?: boolean) => { success: boolean; lead?: Lead; duplicateResult?: DuplicateCheckResult };
@@ -89,17 +128,37 @@ interface CRMContextType {
     leadId: string,
     reason?: string,
     extra?: {
+      handoverTo?: 'CEO' | 'CTO';
+      summary?: string;
+      clientProfile?: HandoverClientProfile;
+      whatClientWants?: HandoverWhatClientWants;
       attachments?: HandoverAttachment[];
       previousChats?: string;
+      aiChatIntelligence?: AIChatIntelligence;
       clientUrls?: string[];
+      timelineSnapshot?: TimelineItem[];
     }
   ) => HandoverRequest | null;
-  reviewHandoverRequest: (requestId: string, status: 'Accepted' | 'Declined' | 'Rejected', notes?: string) => void;
+  reviewHandoverRequest: (requestId: string, status: HandoverRequest['status'], notes?: string) => void;
 
   followUps: FollowUpItem[];
   completeFollowUp: (followUpId: string) => void;
   rescheduleFollowUp: (followUpId: string, newDate: string, newTime: string, newNote?: string) => void;
-  scheduleFollowUp: (leadId: string, dueDate: string, dueTime: string, actionNote: string, priority?: Priority) => void;
+  scheduleFollowUp: (
+    leadIdOrObj:
+      | string
+      | {
+          leadId: string;
+          dueDate: string;
+          dueTime?: string;
+          actionNote: string;
+          priority?: Priority;
+        },
+    dueDate?: string,
+    dueTime?: string,
+    actionNote?: string,
+    priority?: Priority
+  ) => void;
 
   notifications: NotificationItem[];
   markNotificationRead: (id: string) => void;
@@ -207,6 +266,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isCheckLeadModalOpen, setIsCheckLeadModalOpen] = useState(false);
   const [isNewLeadModalOpen, setIsNewLeadModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isCreateInternModalOpen, setIsCreateInternModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   // Save to localStorage
@@ -264,6 +324,109 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setCurrentUser(target);
       localStorage.setItem(`${LOCAL_STORAGE_PREFIX}current_user_id`, target.id);
     }
+  };
+
+  const createUser = (userData: {
+    name: string;
+    email: string;
+    phone?: string;
+    role?: UserRole;
+    title?: string;
+    avatar?: string;
+  }): User => {
+    // Only CEO, CTO, or Admin can create intern accounts
+    if (currentUser.role !== 'ceo' && currentUser.role !== 'cto' && currentUser.role !== 'admin') {
+      alert('Permission Denied: Only CEO and CTO have permission to create intern accounts.');
+      throw new Error('Permission denied: Only CEO and CTO can create accounts.');
+    }
+
+    const assignedRole = userData.role || 'intern';
+    const cleanSlug = userData.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const newId = `user-${cleanSlug || 'intern'}-${Date.now().toString(36).slice(-4)}`;
+
+    const defaultAvatars = [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&h=120&q=80',
+      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=120&h=120&q=80',
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=120&h=120&q=80',
+    ];
+    const pickedAvatar = userData.avatar || defaultAvatars[Math.floor(Math.random() * defaultAvatars.length)];
+
+    const newUser: User = {
+      id: newId,
+      name: userData.name.trim(),
+      email: userData.email.trim(),
+      phone: userData.phone?.trim() || '+92 300 1234567',
+      role: assignedRole,
+      title: userData.title?.trim() || (assignedRole === 'intern' ? 'Lead Generation Intern' : 'Technical Specialist'),
+      avatar: pickedAvatar,
+      active: true,
+      joinedDate: new Date().toISOString().split('T')[0],
+      stats: {
+        leadsCollected: 0,
+        leadsContacted: 0,
+        messagesSent: 0,
+        responsesReceived: 0,
+        followUpsCompleted: 0,
+        overdueFollowUps: 0,
+        qualifiedLeads: 0,
+        wonDeals: 0,
+      },
+    };
+
+    setUsers((prev) => {
+      const next = [...prev, newUser];
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}users`, JSON.stringify(next));
+      return next;
+    });
+
+    logAudit(
+      'Created Intern Account',
+      newUser.id,
+      newUser.name,
+      `New individual account created by ${currentUser.name} (${currentUser.role.toUpperCase()}) for ${newUser.name} (${assignedRole})`
+    );
+
+    return newUser;
+  };
+
+  const updateUser = (userId: string, updates: Partial<User>) => {
+    setUsers((prev) => {
+      const next = prev.map((u) => (u.id === userId ? { ...u, ...updates } : u));
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}users`, JSON.stringify(next));
+      return next;
+    });
+    if (currentUser.id === userId) {
+      setCurrentUser((prev) => ({ ...prev, ...updates }));
+    }
+  };
+
+  const deleteUser = (userId: string): boolean => {
+    if (currentUser.role !== 'ceo' && currentUser.role !== 'cto' && currentUser.role !== 'admin') {
+      alert('Permission Denied: Only CEO and CTO can manage intern accounts.');
+      return false;
+    }
+    const target = users.find((u) => u.id === userId);
+    if (!target) return false;
+    if (target.role === 'ceo' || target.role === 'cto') {
+      alert('Cannot remove primary Executive accounts.');
+      return false;
+    }
+
+    setUsers((prev) => {
+      const next = prev.filter((u) => u.id !== userId);
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}users`, JSON.stringify(next));
+      return next;
+    });
+
+    logAudit(
+      'Archived Intern Account',
+      userId,
+      target.name,
+      `Intern account safely removed/archived by ${currentUser.name}`
+    );
+    return true;
   };
 
   const logAudit = (action: string, leadId?: string, leadName?: string, details?: string) => {
@@ -444,7 +607,26 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newOwner = users.find((u) => u.id === newOwnerId);
     if (!targetLead || !newOwner) return false;
 
-    updateLead(leadId, { assignedInternId: newOwnerId });
+    // Preserve the original intern's ownership and history so after handover the lead remains saved to them
+    const originalInternId = targetLead.originalInternId || targetLead.assignedInternId;
+    const originalInternName =
+      targetLead.originalInternName ||
+      users.find((u) => u.id === targetLead.assignedInternId)?.name ||
+      'Intern';
+    const supporting = Array.from(
+      new Set([
+        ...(targetLead.supportingMemberIds || []),
+        targetLead.assignedInternId,
+        originalInternId,
+      ])
+    );
+
+    updateLead(leadId, {
+      assignedInternId: newOwnerId,
+      originalInternId,
+      originalInternName,
+      supportingMemberIds: supporting,
+    });
 
     logAudit(
       'Reassigned Lead',
@@ -637,9 +819,13 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     extra?: {
       handoverTo?: 'CEO' | 'CTO';
       summary?: string;
+      clientProfile?: HandoverClientProfile;
+      whatClientWants?: HandoverWhatClientWants;
       attachments?: HandoverAttachment[];
       previousChats?: string;
+      aiChatIntelligence?: AIChatIntelligence;
       clientUrls?: string[];
+      timelineSnapshot?: TimelineItem[];
     }
   ): HandoverRequest | null => {
     const lead = leads.find((l) => l.id === leadId);
@@ -655,9 +841,10 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       contact: `${lead.contactPerson} (${lead.phone})`,
       service: lead.interestedService,
       status: lead.status,
-      budget: lead.estimatedBudget || 'Under Discussion',
-      timeline: lead.expectedTimeline || 'Not specified',
+      budget: extra?.whatClientWants?.budget || lead.estimatedBudget || 'Under Discussion',
+      timeline: extra?.whatClientWants?.timeline || lead.expectedTimeline || 'Not specified',
       requirementsSummary:
+        extra?.whatClientWants?.coreNeed ||
         extra?.summary ||
         lead.clientRequirements?.aiSummary ||
         lead.clientRequirements?.coreProblem ||
@@ -668,7 +855,35 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ? 'Technical questions were reviewed.'
         : 'Architecture validated; ready for executive review.',
       nextAction: lead.nextAction || `${targetTo} meeting to review deal and negotiate schedule.`,
+      coreProblem: extra?.whatClientWants?.coreNeed || lead.clientRequirements?.coreProblem,
+      keyObjections: extra?.whatClientWants?.keyObjections || lead.temperatureReason,
     };
+
+    const clientProfile: HandoverClientProfile = extra?.clientProfile || {
+      businessName: lead.businessName,
+      contactPerson: lead.contactPerson,
+      phone: lead.phone,
+      whatsapp: lead.whatsapp || lead.phone,
+      email: lead.email || '',
+      city: lead.city,
+      country: lead.country,
+      industry: lead.industry,
+      businessType: lead.businessType || lead.industry,
+      website: lead.website || '',
+      source: lead.source,
+    };
+
+    const whatClientWants: HandoverWhatClientWants = extra?.whatClientWants || {
+      coreNeed: extra?.summary || lead.clientRequirements?.coreProblem || lead.notes || 'Client interested in digital transformation.',
+      interestedService: lead.interestedService,
+      budget: lead.estimatedBudget || 'Under Discussion',
+      timeline: lead.expectedTimeline || 'Not specified',
+      urgency: (lead.priority === 'High' ? 'High' : 'Normal') as 'Normal' | 'High' | 'Critical',
+      keyObjections: lead.temperatureReason || '',
+      deliverablesSummary: lead.clientRequirements?.desiredFeatures?.join(', ') || lead.clientRequirements?.keyFeatures?.join(', ') || '',
+    };
+
+    const leadTimelineHistory = timeline.filter((t) => t.leadId === leadId);
 
     const newHandover: HandoverRequest = {
       id: `handover-${Date.now()}`,
@@ -680,17 +895,41 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       toUserName: targetUserName,
       handoverTo: targetTo,
       reason: reason || 'Client is interested',
-      summary: extra?.summary || '',
+      summary: extra?.summary || whatClientWants.coreNeed || '',
       status: 'Pending',
       brief,
+      clientProfile,
+      whatClientWants,
       attachments: extra?.attachments || [],
       previousChats: extra?.previousChats || '',
+      aiChatIntelligence: extra?.aiChatIntelligence,
       clientUrls: extra?.clientUrls || [],
+      timelineSnapshot: extra?.timelineSnapshot || leadTimelineHistory,
       createdAt: new Date().toISOString(),
     };
 
+    const originalInternId = lead.originalInternId || lead.assignedInternId || currentUser.id;
+    const originalInternName = lead.originalInternName || currentUser.name;
+    const supporting = Array.from(
+      new Set([
+        ...(lead.supportingMemberIds || []),
+        currentUser.id,
+        lead.assignedInternId,
+        originalInternId,
+      ])
+    );
+
     setHandoverRequests((prev) => [newHandover, ...prev]);
-    updateLead(leadId, { isHandedOverToCeo: true, status: 'Handover Requested' });
+    updateLead(leadId, {
+      isHandedOverToCeo: true,
+      handedOverTo: targetTo,
+      handoverStatus: 'Pending',
+      handoverId: newHandover.id,
+      originalInternId,
+      originalInternName,
+      status: 'Handover Requested',
+      supportingMemberIds: supporting,
+    });
 
     // Timeline event
     let attachmentsNote = '';
@@ -724,7 +963,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const reviewHandoverRequest = (
     requestId: string,
-    status: 'Pending' | 'Accepted' | 'Returned' | 'Completed' | 'Declined' | 'Rejected',
+    status: HandoverRequest['status'],
     notes?: string
   ) => {
     const handover = handoverRequests.find((h) => h.id === requestId);
@@ -746,21 +985,39 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
 
     if (status === 'Accepted') {
-      reassignLead(handover.leadId, handover.toUserId, `Executive handover accepted by ${currentUser.name}.`);
+      const targetLead = leads.find((l) => l.id === handover.leadId);
+      const originalInternId = targetLead?.originalInternId || handover.fromUserId;
+      const originalInternName = targetLead?.originalInternName || handover.fromUserName;
+      const supporting = Array.from(
+        new Set([
+          ...(targetLead?.supportingMemberIds || []),
+          handover.fromUserId,
+          originalInternId,
+        ])
+      );
+
+      // Lead is handed over for Executive leadership closing,
+      // but stays saved with ALL details and timeline to that intern's portfolio
       updateLead(handover.leadId, {
         status: 'Interested',
         isHandedOverToCeo: true,
+        handedOverTo: handover.handoverTo,
+        handoverStatus: 'Accepted',
+        originalInternId,
+        originalInternName,
+        supportingMemberIds: supporting,
       });
 
       addTimelineItem({
         leadId: handover.leadId,
         type: 'handover_event',
-        content: `Lead handed over to ${handover.handoverTo || 'Executive'}. Handover accepted by ${currentUser.name}. Ownership transferred.`,
+        content: `Lead handover to ${handover.handoverTo || 'Executive'} accepted by ${currentUser.name}. Executive ownership active; lead preserved in ${originalInternName}'s workspace with full details.`,
         isInternalOnly: true,
       });
     } else if (status === 'Returned') {
       updateLead(handover.leadId, {
         isHandedOverToCeo: false,
+        handoverStatus: 'Returned',
         status: 'Follow-Up',
       });
 
@@ -821,7 +1078,41 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const scheduleFollowUp = (leadId: string, dueDate: string, dueTime: string, actionNote: string, priority: Priority = 'Medium') => {
+  const scheduleFollowUp = (
+    leadIdOrObj:
+      | string
+      | {
+          leadId: string;
+          dueDate: string;
+          dueTime?: string;
+          actionNote: string;
+          priority?: Priority;
+        },
+    dueDate?: string,
+    dueTime: string = '10:00 AM',
+    actionNote: string = 'Follow-up',
+    priority: Priority = 'Medium'
+  ) => {
+    let leadId: string;
+    let actualDueDate: string;
+    let actualDueTime: string;
+    let actualActionNote: string;
+    let actualPriority: Priority;
+
+    if (typeof leadIdOrObj === 'object') {
+      leadId = leadIdOrObj.leadId;
+      actualDueDate = leadIdOrObj.dueDate;
+      actualDueTime = leadIdOrObj.dueTime || '10:00 AM';
+      actualActionNote = leadIdOrObj.actionNote || 'Follow-up';
+      actualPriority = leadIdOrObj.priority || 'Medium';
+    } else {
+      leadId = leadIdOrObj;
+      actualDueDate = dueDate || new Date().toISOString().split('T')[0];
+      actualDueTime = dueTime;
+      actualActionNote = actionNote;
+      actualPriority = priority;
+    }
+
     const lead = leads.find((l) => l.id === leadId);
     if (!lead) return;
 
@@ -833,16 +1124,16 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       phone: lead.phone,
       ownerId: lead.assignedInternId,
       ownerName: currentUser.name,
-      dueDate,
-      dueTime,
-      actionNote,
+      dueDate: actualDueDate,
+      dueTime: actualDueTime,
+      actionNote: actualActionNote,
       status: 'pending',
-      priority,
+      priority: actualPriority,
     };
 
     setFollowUps((prev) => [newFup, ...prev]);
-    updateLead(leadId, { nextFollowUpDate: dueDate, nextFollowUpTime: dueTime, nextAction: actionNote });
-    logAudit('Scheduled Follow-Up', leadId, lead.businessName, `Due ${dueDate} ${dueTime}: ${actionNote}`);
+    updateLead(leadId, { nextFollowUpDate: actualDueDate, nextFollowUpTime: actualDueTime, nextAction: actualActionNote });
+    logAudit('Scheduled Follow-Up', leadId, lead.businessName, `Due ${actualDueDate} ${actualDueTime}: ${actualActionNote}`);
   };
 
   const markNotificationRead = (id: string) => {
@@ -980,6 +1271,11 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentUser,
         users,
         switchUser,
+        createUser,
+        updateUser,
+        deleteUser,
+        isCreateInternModalOpen,
+        setIsCreateInternModalOpen,
         leads,
         addLead,
         updateLead,

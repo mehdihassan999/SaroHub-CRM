@@ -19,6 +19,7 @@ import { AuditLogsView } from './components/AuditLogsView';
 import { ReportsView } from './components/ReportsView';
 import { LeadsListView } from './components/LeadsListView';
 import { AiSalesAssistantModal } from './components/AiSalesAssistantModal';
+import { CreateInternModal } from './components/CreateInternModal';
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -284,6 +285,8 @@ const MainAppContent: React.FC = () => {
           onClose={() => setIsStandaloneAiOpen(false)}
         />
       )}
+
+      <CreateInternModal />
     </div>
   );
 };

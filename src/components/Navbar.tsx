@@ -14,6 +14,7 @@ import {
   HelpCircle,
   Trash2,
   RotateCcw,
+  UserPlus,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -32,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
     setIsCheckLeadModalOpen,
     setIsNewLeadModalOpen,
     setIsCommandPaletteOpen,
+    setIsCreateInternModalOpen,
     setSelectedLeadId,
     clearAllData,
     resetToDemoData,
@@ -86,12 +88,24 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
         {/* Clear Data Button (Start from Scratch) */}
         <button
           onClick={() => setIsClearModalOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50"
+          className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50 cursor-pointer"
           title="Clear all leads, follow-ups, timeline logs to check CRM from scratch"
         >
           <Trash2 className="h-3.5 w-3.5" />
           <span className="hidden xl:inline">Clear Data</span>
         </button>
+
+        {/* CEO & CTO: Create New Intern Account */}
+        {(currentUser.role === 'ceo' || currentUser.role === 'cto' || currentUser.role === 'admin') && (
+          <button
+            onClick={() => setIsCreateInternModalOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 cursor-pointer"
+            title="Create a new individual workspace account for a new intern"
+          >
+            <UserPlus className="h-3.5 w-3.5 text-emerald-600" />
+            <span className="hidden lg:inline">+ New Intern</span>
+          </button>
+        )}
 
         {/* Core Protection Tool: "Check Lead" */}
         <button
@@ -252,6 +266,21 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                   );
                 })}
               </div>
+
+              {(currentUser.role === 'ceo' || currentUser.role === 'cto' || currentUser.role === 'admin') && (
+                <div className="pt-1.5 mt-1 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      setIsUserSwitcherOpen(false);
+                      setIsCreateInternModalOpen(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-left text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer"
+                  >
+                    <UserPlus className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>+ Create New Intern Account</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

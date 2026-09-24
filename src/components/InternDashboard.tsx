@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCRM } from '../context/CRMContext';
+import { useCRM, isUserAssociatedWithLead } from '../context/CRMContext';
 import {
   Users,
   Send,
@@ -12,6 +12,7 @@ import {
   PlusCircle,
   ShieldCheck,
   Search,
+  Sparkles,
 } from 'lucide-react';
 
 interface InternDashboardProps {
@@ -28,10 +29,11 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({
   const { currentUser, leads, followUps, completeFollowUp, handoverRequests } = useCRM();
 
   const [searchFilter, setSearchFilter] = useState('');
+  const [leadScopeTab, setLeadScopeTab] = useState<'all' | 'active' | 'handed_over'>('all');
 
-  // Intern leads
-  const myLeads = leads.filter(
-    (l) => currentUser.role === 'ceo' || currentUser.role === 'admin' || l.assignedInternId === currentUser.id
+  // Intern leads - using isUserAssociatedWithLead so handed-over leads remain permanently saved to intern
+  const myLeads = leads.filter((l) =>
+    isUserAssociatedWithLead(l, currentUser, handoverRequests)
   );
 
   // 5 Core Metrics for Intern Dashboard
@@ -44,12 +46,12 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({
   ).length;
 
   const myFollowUps = followUps.filter(
-    (f) => currentUser.role === 'ceo' || currentUser.role === 'admin' || f.ownerId === currentUser.id
+    (f) => currentUser.role === 'ceo' || currentUser.role === 'cto' || currentUser.role === 'admin' || f.ownerId === currentUser.id
   );
   const activeFollowUpsCount = myFollowUps.filter((f) => f.status === 'pending' || f.status === 'overdue').length;
 
   const myPendingHandovers = handoverRequests.filter(
-    (h) => (h.status === 'Pending' || h.status === 'Pending Review') && (currentUser.role === 'ceo' || h.fromUserId === currentUser.id)
+    (h) => (h.status === 'Pending' || h.status === 'Pending Review') && (currentUser.role === 'ceo' || currentUser.role === 'cto' || h.fromUserId === currentUser.id)
   );
 
   // Today's Follow-Ups
@@ -58,9 +60,16 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({
     (f) => (f.dueDate === todayDateStr || f.status === 'overdue') && f.status !== 'completed'
   );
 
-  // Recent Leads filtered by search
+  // Recent Leads filtered by search and handover scope tab
   const recentLeads = myLeads
     .filter((lead) => {
+      if (leadScopeTab === 'active' && (lead.isHandedOverToCeo || lead.handoverStatus === 'Accepted')) {
+        return false;
+      }
+      if (leadScopeTab === 'handed_over' && !lead.isHandedOverToCeo && lead.handoverStatus !== 'Accepted') {
+        return false;
+      }
+
       const q = searchFilter.toLowerCase();
       return (
         lead.businessName.toLowerCase().includes(q) ||
@@ -258,25 +267,67 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div>
-            <h2 className="text-sm font-bold text-slate-900">Recent Leads</h2>
-            <p className="text-xs text-slate-500">Your most recently active leads</p>
+            <h2 className="text-sm font-bold text-slate-900">Your Lead Portfolio</h2>
+            <p className="text-xs text-slate-500">
+              All client records and complete conversation history stay saved to you, even after handover
+            </p>
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Filter leads..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs focus:border-emerald-600 focus:bg-white focus:outline-hidden"
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Scope tabs */}
+            <div className="flex items-center rounded-xl border border-slate-200 bg-slate-100/80 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setLeadScopeTab('all')}
+                className={`rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${
+                  leadScopeTab === 'all'
+                    ? 'bg-white text-slate-900 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All ({myLeads.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeadScopeTab('active')}
+                className={`rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${
+                  leadScopeTab === 'active'
+                    ? 'bg-white text-emerald-800 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                In Progress ({myLeads.filter((l) => !l.isHandedOverToCeo && l.handoverStatus !== 'Accepted').length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeadScopeTab('handed_over')}
+                className={`rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${
+                  leadScopeTab === 'handed_over'
+                    ? 'bg-purple-600 text-white shadow-2xs'
+                    : 'text-purple-700 hover:text-purple-900'
+                }`}
+                title="Leads handed over to CEO/CTO with full notes, audio, and details preserved"
+              >
+                Handed Over ({myLeads.filter((l) => l.isHandedOverToCeo || l.handoverStatus === 'Accepted').length})
+              </button>
+            </div>
+
+            <div className="relative w-full sm:w-56">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search your leads..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1 text-xs focus:border-emerald-600 focus:bg-white focus:outline-hidden"
+              />
+            </div>
           </div>
         </div>
 
         {recentLeads.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-400">
-            No leads found. Click "+ Add Lead" to start outreach!
+            No leads found in this view. Click "+ Add Lead" to start outreach!
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -287,6 +338,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({
                   <th className="py-2.5 px-3">Phone</th>
                   <th className="py-2.5 px-3">Service</th>
                   <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3">Handover & Ownership</th>
                   <th className="py-2.5 px-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -296,7 +348,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({
                     <td className="py-3 px-3">
                       <button
                         onClick={() => onSelectLead(lead.id)}
-                        className="font-bold text-slate-900 hover:text-emerald-700 text-left block"
+                        className="font-bold text-slate-900 hover:text-emerald-700 text-left block cursor-pointer"
                       >
                         {lead.businessName}
                       </button>
@@ -305,13 +357,30 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({
                     <td className="py-3 px-3 font-mono text-slate-700">
                       {lead.phone || 'No phone'}
                     </td>
-                    <td className="py-3 px-3 text-slate-700 max-w-[200px] truncate">
+                    <td className="py-3 px-3 text-slate-700 max-w-[180px] truncate">
                       {lead.interestedService}
                     </td>
                     <td className="py-3 px-3">
                       <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
                         {lead.status}
                       </span>
+                    </td>
+                    <td className="py-3 px-3">
+                      {lead.isHandedOverToCeo || lead.handoverStatus === 'Accepted' ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="rounded-full bg-purple-100 border border-purple-200 px-2 py-0.5 text-[10px] font-bold text-purple-800 flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 text-purple-600" />
+                            Handed Over to {lead.handedOverTo || 'Executive'}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            Details Saved
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          Active in Portfolio
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCRM } from '../context/CRMContext';
+import { useCRM, isUserAssociatedWithLead } from '../context/CRMContext';
 import {
   Users,
   Search,
@@ -40,7 +40,7 @@ export const LeadsListView: React.FC<LeadsListViewProps> = ({
   onOpenCheckLead,
   onOpenHandover,
 }) => {
-  const { leads, updateLead, currentUser, users, scheduleFollowUp } = useCRM();
+  const { leads, updateLead, currentUser, users, scheduleFollowUp, handoverRequests } = useCRM();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -56,8 +56,12 @@ export const LeadsListView: React.FC<LeadsListViewProps> = ({
 
   // Filter leads
   const filteredLeads = leads.filter((lead) => {
-    // If intern and not toggled to all, show only own leads
-    if (!showAllLeads && currentUser.role === 'intern' && lead.assignedInternId !== currentUser.id) {
+    // If intern and not toggled to all, show leads associated with this intern (including handed-over leads)
+    if (
+      !showAllLeads &&
+      currentUser.role === 'intern' &&
+      !isUserAssociatedWithLead(lead, currentUser, handoverRequests)
+    ) {
       return false;
     }
 

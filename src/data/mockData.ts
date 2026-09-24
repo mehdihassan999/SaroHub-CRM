@@ -613,6 +613,127 @@ export const INITIAL_TECHNICAL_REQUESTS: TechnicalRequest[] = [];
 
 export const DEMO_HANDOVER_REQUESTS: HandoverRequest[] = [
   {
+    id: 'handover-kitchen-001',
+    leadId: 'lead-kitchen-001',
+    businessName: 'Home Made Kitchen & Food Catering',
+    fromUserId: 'user-ahmed',
+    fromUserName: 'Ahmed Khan',
+    toUserId: 'user-mehdi',
+    toUserName: 'Mehdi Raza (CEO)',
+    handoverTo: 'CEO',
+    reason: 'Client agreed on price (PKR 20,000) and requested Easypaisa account for deposit',
+    status: 'Pending',
+    createdAt: '2026-09-23T10:00:00Z',
+    summary:
+      'Client runs a homemade kitchen food catering business (+92 316 3114968). They want daily orders and sales. Intern negotiated PKR 20,000 package for custom food ordering website + digital marketing. Client agreed and asked for Easypaisa payment details.',
+    clientProfile: {
+      businessName: 'Home Made Kitchen & Food Catering',
+      contactPerson: 'Kitchen Owner (+92 316 3114968)',
+      phone: '+92 316 3114968',
+      whatsapp: '+92 316 3114968',
+      email: 'homemadekitchen.orders@gmail.com',
+      city: 'Karachi',
+      country: 'Pakistan',
+      industry: 'Food & Home Catering',
+      businessType: 'Home Kitchen & Daily Food Delivery',
+      source: 'WhatsApp Inbound Export',
+    },
+    whatClientWants: {
+      coreNeed:
+        'Client is distressed about selling homemade food and needs immediate help to get daily orders and recurring earnings through an online food ordering website and digital marketing.',
+      interestedService: 'Online Food Ordering Website + Local Social Media Ads',
+      budget: 'PKR 20,000 (Agreed Final)',
+      timeline: '1 week',
+      urgency: 'Critical',
+      keyObjections:
+        'Initially asked if the website could be made for free. Intern explained value and offered free starter marketing to guarantee orders. Client asked if price could be lower than PKR 20,000, but accepted 20,000 as final and requested Easypaisa account.',
+      deliverablesSummary:
+        'Custom Food Ordering Web Portal, Menu Catalog (Biryani, Qorma, Karahi, Rolls, Sweets), WhatsApp Direct Checkout, Local Marketing Campaign',
+    },
+    aiChatIntelligence: {
+      clientNameOrPhone: '+92 316 3114968',
+      businessIdentified: 'Home Made Kitchen & Food Catering Service',
+      coreNeed:
+        'Client operates a home kitchen business and is struggling to generate sales. Needs an online ordering portal and local marketing so daily orders and earnings start immediately.',
+      productsOrMenu:
+        'Chicken Qorma, Biryani, Karahi, Achar Gosht, White Qorma, White Karahi, Samosa, Kachori, Qeema & Aloo Rolls, Shami Kabab, Kheer, Custard, Halwa, Dahi Bhallay, Chana Chaat, and Party Orders.',
+      budgetDiscussed: 'PKR 20,000 (Agreed after negotiation)',
+      paymentMethod: 'Easypaisa transfer to 03554591306 (Mehdi Hassan)',
+      urgency: 'Critical / Immediate',
+      keyObjectionsOrQuestions:
+        'Client asked "Website free bane gi ya paise?". Intern clarified commercial pricing with free marketing bonus. Client negotiated down to PKR 20,000 and confirmed "Theek hai Easypaisa account number send karein deposit ke liye."',
+      voiceNotesSummary:
+        '6 voice notes were exchanged discussing custom menu items, delivery boundaries, and Easypaisa payment verification.',
+      executiveSummary:
+        'Prospect is ready to close immediately. Package is finalized at PKR 20,000 with payment via Easypaisa. CEO can confirm receipt of deposit and initialize rapid 5-day delivery.',
+    },
+    previousChats: `[9/23/26, 12:32:49 PM] +92 316 3114968: Aslam ualkum ji meaapna home made kitchen ka Khana sale out Karne ke liy pareshan hon aap Mari halp krden ke Mari daliy arning start ho jay mare Orders ana start ho jahin plz halp me
+[9/23/26, 12:32:52 PM] You: Hi! Please let us know how we can help you.
+[9/23/26, 1:11:35 PM] You: <voice message omitted>
+[9/23/26, 1:59:49 PM] +92 316 3114968: Ji shakryia mea Chicken Qarma Biryani karahi, achar gosht wihteqarma w white karahi samosa kachori qeema/aloo k roll shami kabab, kheer custrd halwa dahi bhallay chana chaat party order be kar layti hon
+[9/23/26, 2:05:10 PM] You: <voice message omitted>
+[9/23/26, 2:10:45 PM] +92 316 3114968: Ji website free bane gi ya paise?
+[9/23/26, 2:12:30 PM] You: <voice message omitted>
+[9/23/26, 2:15:20 PM] You: Hum aap ko complete food ordering website bana kar dein gay sath initial digital marketing free dein gay taakay orders foran shuru hon.
+[9/23/26, 2:30:15 PM] +92 316 3114968: 20000 se kam nahi hongy? Yehi final kar lein.
+[9/23/26, 2:32:00 PM] You: <voice message omitted>
+[9/23/26, 2:35:10 PM] +92 316 3114968: Theek hai Easypaisa account number send karein deposit ke liye.
+[9/23/26, 2:36:25 PM] You: Easypaisa: 03554591306 (Mehdi Hassan). Main CEO desk ko handover kar raha hon closing confirmation ke liye.`,
+    attachments: [
+      {
+        id: 'att-kitchen-chat-1',
+        type: 'chat',
+        title: 'WhatsApp Chat Export (+92 316 3114968)',
+        content: `[9/23/26, 12:32:49 PM] +92 316 3114968: Aslam ualkum ji meaapna home made kitchen ka Khana sale out Karne ke liy pareshan hon aap Mari halp krden ke Mari daliy arning start ho jay mare Orders ana start ho jahin plz halp me
+[9/23/26, 12:32:52 PM] You: Hi! Please let us know how we can help you.
+[9/23/26, 1:11:35 PM] You: <voice message omitted>
+[9/23/26, 1:59:49 PM] +92 316 3114968: Ji shakryia mea Chicken Qarma Biryani karahi, achar gosht wihteqarma w white karahi samosa kachori qeema/aloo k roll shami kabab, kheer custrd halwa dahi bhallay chana chaat party order be kar layti hon
+[9/23/26, 2:05:10 PM] You: <voice message omitted>
+[9/23/26, 2:10:45 PM] +92 316 3114968: Ji website free bane gi ya paise?
+[9/23/26, 2:12:30 PM] You: <voice message omitted>
+[9/23/26, 2:15:20 PM] You: Hum aap ko complete food ordering website bana kar dein gay sath initial digital marketing free dein gay taakay orders foran shuru hon.
+[9/23/26, 2:30:15 PM] +92 316 3114968: 20000 se kam nahi hongy? Yehi final kar lein.
+[9/23/26, 2:32:00 PM] You: <voice message omitted>
+[9/23/26, 2:35:10 PM] +92 316 3114968: Theek hai Easypaisa account number send karein deposit ke liye.
+[9/23/26, 2:36:25 PM] You: Easypaisa: 03554591306 (Mehdi Hassan). Main CEO desk ko handover kar raha hon closing confirmation ke liye.`,
+        fileName: 'WhatsApp Chat - +92 316 3114968.txt',
+        fileSize: '4.2 KB',
+        createdAt: '2026-09-23T10:00:00Z',
+      },
+      {
+        id: 'att-kitchen-voice-1',
+        type: 'voice_note',
+        title: 'Voice Note 1: Menu Discussion (Chicken Qarma, Karahi, Roll Kabab)',
+        duration: '0:48',
+        content: 'Client explains daily menu preparation, packaging capacity, and urgent need for daily recurring income.',
+        createdAt: '2026-09-23T10:02:00Z',
+      },
+      {
+        id: 'att-kitchen-voice-2',
+        type: 'voice_note',
+        title: 'Voice Note 2: Budget Negotiation & Easypaisa Confirmation',
+        duration: '0:35',
+        content: 'Intern explains PKR 20,000 all-inclusive package with digital marketing, and client agrees to send deposit via Easypaisa.',
+        createdAt: '2026-09-23T10:05:00Z',
+      },
+    ],
+    brief: {
+      business: 'Home Made Kitchen & Food Catering',
+      contact: 'Kitchen Owner (+92 316 3114968)',
+      service: 'Online Food Ordering Website + Free Starter Marketing',
+      status: 'Qualified / Deal Closing',
+      budget: 'PKR 20,000 (Agreed)',
+      timeline: '1 week',
+      requirementsSummary:
+        'Client wants a direct food ordering website with WhatsApp order alerts, online menu, and marketing to start receiving daily lunch & dinner orders.',
+      previousCommunicationSummary:
+        'Client reached out distressed about lack of food orders. Intern discussed menu, handled price objections, and agreed on PKR 20,000 with Easypaisa deposit to 03554591306.',
+      technicalNotes:
+        'Mobile-first Next.js food ordering catalog with WhatsApp webhook order notifications and QR code flyer for local distribution.',
+      nextAction: 'CEO Mehdi to verify Easypaisa transfer and assign project onboarding.',
+    },
+  },
+  {
     id: 'handover-001',
     leadId: 'lead-003',
     businessName: 'Apex Logistics & Freight Dubai',
@@ -620,12 +741,44 @@ export const DEMO_HANDOVER_REQUESTS: HandoverRequest[] = [
     fromUserName: 'Ahmed Khan',
     toUserId: 'user-mehdi',
     toUserName: 'Mehdi Raza (CEO)',
+    handoverTo: 'CEO',
     reason:
       'Lead is highly qualified enterprise deal ($15,000 budget). Director requested executive meeting with SaroHub CEO to finalize payment milestones and custom SLA.',
     status: 'Accepted',
     createdAt: '2026-09-21T17:30:00Z',
     reviewedAt: '2026-09-22T08:30:00Z',
     ceoReviewNotes: 'Accepted. Brief is comprehensive. I will lead the executive video call on Thursday.',
+    summary:
+      'Client is ready for closing call. Operations Director Farhan Al-Hashemi is verified decision-maker. Approved budget is $15,000 USD. Requires 50/50 payment milestone agreement.',
+    clientProfile: {
+      businessName: 'Apex Logistics & Freight Dubai',
+      contactPerson: 'Farhan Al-Hashemi',
+      phone: '+971 4 299 8811',
+      whatsapp: '+971 4 299 8811',
+      email: 'farhan@apexlogistics.ae',
+      city: 'Dubai',
+      country: 'United Arab Emirates',
+      industry: 'Logistics & Supply Chain',
+      businessType: 'Fleet Freight & Container Shipping',
+      website: 'https://apexlogistics.ae',
+      source: 'LinkedIn Outreach',
+    },
+    whatClientWants: {
+      coreNeed:
+        'Needs a centralized 60-truck GPS telemetry dashboard, client self-service booking portal for container shipping, automated UAE VAT invoices, and driver mobile app.',
+      interestedService: 'Enterprise Logistics CRM + Real-time Shipment Tracker',
+      budget: '$15,000 USD (Approved Q4 budget)',
+      timeline: '2 to 3 months',
+      urgency: 'High',
+      keyObjections:
+        'Client asked for 99.9% uptime SLA and wants driver telemetry updates with less than 60-second latency.',
+      deliverablesSummary:
+        'Flutter Driver App, Next.js Dispatch Portal, Twilio SMS Alerts, WhatsApp API Notifications, Stripe/Plaid Integration',
+    },
+    previousChats: `[Sep 20, 11:20 AM] Farhan Al-Hashemi: "Ahmed, we reviewed your initial CRM demo with the dispatch team. The GPS tracker latency looks solid."
+[Sep 20, 11:24 AM] Ahmed Khan: "Thank you Farhan! As discussed, SaroHub will integrate directly with your 60-truck telemetry via MQTT."
+[Sep 20, 11:30 AM] Farhan Al-Hashemi: "Our CFO has approved the $15,000 allocation. Can we schedule a 30-min call with your CEO this Thursday 2:00 PM GST to finalize payment milestones?"
+[Sep 20, 11:32 AM] Ahmed Khan: "Absolutely, I am looping in CEO Mehdi for executive sign-off and proposal presentation."`,
     attachments: [
       {
         id: 'att-demo-1',
@@ -634,7 +787,7 @@ export const DEMO_HANDOVER_REQUESTS: HandoverRequest[] = [
         content: `[Sep 20, 11:20 AM] Farhan Al-Hashemi: "Ahmed, we reviewed your initial CRM demo with the dispatch team. The GPS tracker latency looks solid."
 [Sep 20, 11:24 AM] Ahmed Khan: "Thank you Farhan! As discussed, SaroHub will integrate directly with your 60-truck telemetry via MQTT."
 [Sep 20, 11:30 AM] Farhan Al-Hashemi: "Our CFO has approved the $15,000 allocation. Can we schedule a 30-min call with your CEO this Thursday 2:00 PM GST to finalize payment milestones?"
-[Sep 20, 11:32 AM] Ahmed Khan: "Absolutely, I am looping in CEO Saroosh for executive sign-off."`,
+[Sep 20, 11:32 AM] Ahmed Khan: "Absolutely, I am looping in CEO Mehdi for executive sign-off."`,
         createdAt: '2026-09-21T16:00:00Z',
       },
       {
@@ -647,6 +800,14 @@ export const DEMO_HANDOVER_REQUESTS: HandoverRequest[] = [
       },
       {
         id: 'att-demo-3',
+        type: 'video',
+        title: 'Dispatch Dashboard Walkthrough Loom Recording',
+        url: 'https://loom.com/share/demo-apex-logistics-dispatch-review',
+        content: 'Intern walkthrough of client current spreadsheets and workflow pain points.',
+        createdAt: '2026-09-21T16:18:00Z',
+      },
+      {
+        id: 'att-demo-4',
         type: 'url',
         title: 'Apex Operations Specifications & RFQ Document',
         url: 'https://drive.google.com/drive/folders/apex-freight-dxb-rfq',
@@ -669,9 +830,150 @@ export const DEMO_HANDOVER_REQUESTS: HandoverRequest[] = [
       nextAction: 'CEO Mehdi to present customized formal contract and project architecture document.',
     },
   },
+  {
+    id: 'handover-002',
+    leadId: 'lead-005',
+    businessName: 'Prime Real Estate & Developers',
+    fromUserId: 'user-fatima',
+    fromUserName: 'Fatima Noor',
+    toUserId: 'user-mehdi',
+    toUserName: 'Mehdi Raza (CEO)',
+    handoverTo: 'CEO',
+    reason: 'Client requested quotation / formal proposal',
+    status: 'Pending',
+    createdAt: '2026-09-22T09:15:00Z',
+    summary:
+      'Managing Partner Chaudhry Kamran wants a customized real estate sales pipeline with 3D virtual tour listings and automated WhatsApp agent assignment. Budget is PKR 450,000.',
+    clientProfile: {
+      businessName: 'Prime Real Estate & Developers',
+      contactPerson: 'Chaudhry Kamran',
+      phone: '+92 333 5551212',
+      whatsapp: '+92 333 5551212',
+      email: 'kamran@primedevelopers.pk',
+      city: 'Lahore',
+      country: 'Pakistan',
+      industry: 'Real Estate & Property',
+      businessType: 'Commercial & Residential Developer',
+      website: 'https://primedevelopers.pk',
+      source: 'WhatsApp Outreach',
+    },
+    whatClientWants: {
+      coreNeed:
+        'Needs a modern website redesign with dynamic property inventory, 360-degree virtual tour embeds, lead routing to 15 sales agents via WhatsApp API, and automated installment schedule tracker for buyers.',
+      interestedService: 'Property Portal & WhatsApp CRM Integration',
+      budget: 'PKR 450,000',
+      timeline: '4 to 6 weeks',
+      urgency: 'Critical',
+      keyObjections:
+        'Wants assurance that their 15 sales agents can use it on mobile without tech training.',
+      deliverablesSummary:
+        'Next.js Property Portal, Agent Mobile Dashboard, WhatsApp Business API Webhook, Installment Schedule Calculator',
+    },
+    previousChats: `[Sep 21, 02:15 PM] Chaudhry Kamran: "Fatima sahiba, hum ne aap ki sample real estate website dekhi hai. Looks very impressive."
+[Sep 21, 02:20 PM] Fatima Noor: "Shukriya Kamran sahab! Hum aap ke 15 sales agents ke liye direct WhatsApp lead assignment bhi integrate kar saktay hain."
+[Sep 21, 02:25 PM] Chaudhry Kamran: "Zabardast. Humara budget approximately 4 to 5 lakh hai. CEO Mehdi Raza sahab se meeting arrange karwayein kal tak taakay contract finalize ho sakay."
+[Sep 21, 02:27 PM] Fatima Noor: "Bilkul sir! Main CEO desk ko complete dossier handover kar rahi hoon meeting schedule karne ke liye."`,
+    attachments: [
+      {
+        id: 'att-prime-1',
+        type: 'chat',
+        title: 'WhatsApp Requirement Discussion with Chaudhry Kamran',
+        content: `[Sep 21, 02:15 PM] Chaudhry Kamran: "Fatima sahiba, hum ne aap ki sample real estate website dekhi hai. Looks very impressive."
+[Sep 21, 02:20 PM] Fatima Noor: "Shukriya Kamran sahab! Hum aap ke 15 sales agents ke liye direct WhatsApp lead assignment bhi integrate kar saktay hain."
+[Sep 21, 02:25 PM] Chaudhry Kamran: "Zabardast. Humara budget approximately 4 to 5 lakh hai. CEO Mehdi Raza sahab se meeting arrange karwayein kal tak taakay contract finalize ho sakay."`,
+        createdAt: '2026-09-22T09:00:00Z',
+      },
+      {
+        id: 'att-prime-2',
+        type: 'voice_note',
+        title: 'Fatima Verbal Debrief for CEO Mehdi',
+        duration: '0:48',
+        content: 'Intern explains Chaudhry Kamran urgency for next month launch in DHA Phase 8 and readiness to pay 40% advance.',
+        createdAt: '2026-09-22T09:05:00Z',
+      },
+      {
+        id: 'att-prime-3',
+        type: 'screenshot',
+        title: 'Existing Website Pain Points & Desired Layout Mockup',
+        url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
+        createdAt: '2026-09-22T09:10:00Z',
+      },
+    ],
+  },
+  {
+    id: 'handover-003',
+    leadId: 'lead-001',
+    businessName: 'ABC Dental & Aesthetic Clinic',
+    fromUserId: 'user-ahmed',
+    fromUserName: 'Ahmed Khan',
+    toUserId: 'user-nawaz',
+    toUserName: 'Nawaz Sharif (CTO)',
+    handoverTo: 'CTO',
+    reason: 'Technical feasibility & architecture review (CTO)',
+    status: 'Pending',
+    createdAt: '2026-09-22T10:30:00Z',
+    summary:
+      'Dr. Tariq Mansoor requires Dentrix dental software bidirectional sync for live appointment booking and patient medical history encryption.',
+    clientProfile: {
+      businessName: 'ABC Dental & Aesthetic Clinic',
+      contactPerson: 'Dr. Tariq Mansoor',
+      phone: '+971 50 123 4567',
+      whatsapp: '+971 50 123 4567',
+      email: 'dr.tariq@abcdentalclinic.ae',
+      city: 'Dubai',
+      country: 'United Arab Emirates',
+      industry: 'Healthcare & Dental',
+      businessType: 'Multi-specialty Dental Clinic',
+      website: 'https://abcdentalclinic.ae',
+      source: 'Google Maps Outreach',
+    },
+    whatClientWants: {
+      coreNeed:
+        'Wants seamless bidirectional calendar sync with Dentrix G7 Desktop software, automated patient SMS/WhatsApp reminder triggers 24 hours prior, and online deposit payment gateway (Network International / Stripe).',
+      interestedService: 'Online Patient Booking System + WhatsApp Automation',
+      budget: '$4,500 USD',
+      timeline: '3 to 4 weeks',
+      urgency: 'High',
+      keyObjections:
+        'Concerned about patient record data privacy and HIPAA/DHA health authority compliance for cloud storage.',
+      deliverablesSummary:
+        'Dentrix API Gateway Connector, Web Patient Booking Widget, DHA-compliant Cloud Database, WhatsApp Confirmation Bot',
+    },
+    previousChats: `[Sep 18, 10:15 AM] Ahmed Khan: "Good morning Dr. Tariq! Reaching out from SaroHub regarding patient appointment automation."
+[Sep 18, 01:20 PM] Dr. Tariq: "Does your system integrate directly with Dentrix G7? We cannot manually re-enter appointments."
+[Sep 19, 09:30 AM] Ahmed Khan: "Yes Dr. Tariq, our CTO Nawaz confirmed our desktop agent bridges Dentrix database in real-time."
+[Sep 19, 11:00 AM] Dr. Tariq: "Excellent. Can your CTO Nawaz review our server specs and give us a technical blueprint?"`,
+    attachments: [
+      {
+        id: 'att-dent-1',
+        type: 'chat',
+        title: 'WhatsApp Chat Log with Dr. Tariq Mansoor',
+        content: `[Sep 18, 10:15 AM] Ahmed Khan: "Good morning Dr. Tariq! Reaching out from SaroHub regarding patient appointment automation."
+[Sep 18, 01:20 PM] Dr. Tariq: "Does your system integrate directly with Dentrix G7? We cannot manually re-enter appointments."
+[Sep 19, 09:30 AM] Ahmed Khan: "Yes Dr. Tariq, our CTO Nawaz confirmed our desktop agent bridges Dentrix database in real-time."`,
+        createdAt: '2026-09-22T10:00:00Z',
+      },
+      {
+        id: 'att-dent-2',
+        type: 'voice_note',
+        title: 'Ahmed Audio Memo Explaining Dentrix Setup',
+        duration: '1:05',
+        content: 'Ahmed explains clinic on-premise Windows server setup and Dr. Tariq compliance checklist.',
+        createdAt: '2026-09-22T10:15:00Z',
+      },
+      {
+        id: 'att-dent-3',
+        type: 'video',
+        title: 'Dentrix G7 Clinic Booking Flow Demo Video',
+        url: 'https://youtube.com/watch?v=sample-dentrix-sync',
+        content: 'Walkthrough video of clinic appointment booking flow.',
+        createdAt: '2026-09-22T10:20:00Z',
+      },
+    ],
+  },
 ];
 
-export const INITIAL_HANDOVER_REQUESTS: HandoverRequest[] = [];
+export const INITIAL_HANDOVER_REQUESTS: HandoverRequest[] = DEMO_HANDOVER_REQUESTS;
 
 export const DEMO_FOLLOW_UPS: FollowUpItem[] = [
   {

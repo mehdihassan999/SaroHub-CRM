@@ -13,24 +13,42 @@ import {
   Cpu,
   ShieldCheck,
   Sparkles,
+  ArrowRightLeft,
+  Video,
+  Image as ImageIcon,
+  MessageCircle,
 } from 'lucide-react';
-import { TechnicalRequest } from '../types/crm';
+import { TechnicalRequest, HandoverRequest } from '../types/crm';
+import { HandoverDossierModal } from './HandoverDossierModal';
 
 interface CtoDashboardProps {
   onSelectLead: (leadId: string) => void;
 }
 
 export const CtoDashboard: React.FC<CtoDashboardProps> = ({ onSelectLead }) => {
-  const { techRequests, answerTechRequest, knowledgeBase, leads } = useCRM();
+  const {
+    techRequests,
+    answerTechRequest,
+    knowledgeBase,
+    leads,
+    handoverRequests,
+    reviewHandoverRequest,
+    reassignLead,
+    currentUser,
+  } = useCRM();
 
-  const [activeTab, setActiveTab] = useState<'queue' | 'answered' | 'tech_stack'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'answered' | 'handovers' | 'tech_stack'>('queue');
   const [answeringRequestId, setAnsweringRequestId] = useState<string | null>(null);
   const [answerText, setAnswerText] = useState('');
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [selectedDossier, setSelectedDossier] = useState<HandoverRequest | null>(null);
 
   const pendingRequests = techRequests.filter((r) => r.status === 'Awaiting Technical Response');
   const answeredRequests = techRequests.filter((r) => r.status === 'Answered');
+  const ctoHandoverRequests = handoverRequests.filter(
+    (h) => h.handoverTo === 'CTO' || h.toUserName?.includes('CTO')
+  );
 
   const handleStartRecording = () => {
     setIsRecordingVoice(true);
@@ -112,6 +130,21 @@ export const CtoDashboard: React.FC<CtoDashboardProps> = ({ onSelectLead }) => {
         >
           <CheckCircle2 className="h-4 w-4" />
           Answered Archive ({answeredRequests.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('handovers')}
+          className={`px-4 py-2.5 text-xs font-bold transition border-b-2 flex items-center gap-2 ${
+            activeTab === 'handovers'
+              ? 'border-indigo-600 text-indigo-700'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <ArrowRightLeft className="h-4 w-4" />
+          Technical Handovers ({ctoHandoverRequests.length})
+          {ctoHandoverRequests.some(
+            (h) => h.status === 'Pending' || h.status === 'Pending Review'
+          ) && <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />}
         </button>
 
         <button
@@ -333,6 +366,133 @@ export const CtoDashboard: React.FC<CtoDashboardProps> = ({ onSelectLead }) => {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Tab 4: Technical Client Handovers */}
+      {activeTab === 'handovers' && (
+        <div className="space-y-4">
+          {ctoHandoverRequests.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-white py-12 text-center shadow-2xs">
+              <ArrowRightLeft className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+              <h3 className="text-sm font-bold text-slate-800">No Technical Client Handovers</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                When interns transfer complex architectural or custom software deals to the CTO, they will appear here with full intelligence.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {ctoHandoverRequests.map((h) => {
+                const hLead = leads.find((l) => l.id === h.leadId);
+                const attCount = h.attachments?.length || 0;
+                const hasVoice = h.attachments?.some((a) => a.type === 'voice_note');
+                const hasVideo = h.attachments?.some((a) => a.type === 'video');
+                const rawPhone = (h.clientProfile?.phone || hLead?.phone || '').replace(/[^\d]/g, '');
+
+                return (
+                  <div
+                    key={h.id}
+                    className="rounded-2xl border border-indigo-200 bg-white p-5 shadow-2xs space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-bold text-sm text-slate-900">{h.businessName}</h4>
+                          <p className="text-[11px] text-slate-500">
+                            Contact: <strong className="text-slate-700">{h.clientProfile?.contactPerson || hLead?.contactPerson}</strong> • Intern: {h.fromUserName}
+                          </p>
+                        </div>
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                            h.status === 'Pending' || h.status === 'Pending Review'
+                              ? 'bg-amber-100 text-amber-800'
+                              : h.status === 'Accepted'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {h.status}
+                        </span>
+                      </div>
+
+                      <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-3 text-xs space-y-1">
+                        <span className="font-bold text-[10px] text-indigo-800 uppercase tracking-wider block">
+                          Technical Requirement & Scope:
+                        </span>
+                        <p className="font-medium text-slate-900 leading-relaxed">
+                          {h.whatClientWants?.coreNeed || h.brief?.requirementsSummary || h.summary || 'Architecture review required.'}
+                        </p>
+                      </div>
+
+                      {/* Attached Intelligence Pills */}
+                      <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+                        {(h.previousChats || h.attachments?.some((a) => a.type === 'chat')) && (
+                          <span className="rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-emerald-800 font-semibold flex items-center gap-1">
+                            <MessageSquare className="h-3 w-3" /> Chats Included
+                          </span>
+                        )}
+                        {hasVoice && (
+                          <span className="rounded-md bg-rose-50 border border-rose-200 px-2 py-0.5 text-rose-800 font-semibold flex items-center gap-1">
+                            <Mic className="h-3 w-3" /> Voice Debrief
+                          </span>
+                        )}
+                        {hasVideo && (
+                          <span className="rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-blue-800 font-semibold flex items-center gap-1">
+                            <Video className="h-3 w-3" /> Video Demo
+                          </span>
+                        )}
+                        {attCount > 0 && (
+                          <span className="text-slate-400 font-medium text-[10px]">
+                            +{attCount} total item(s)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        {rawPhone && (
+                          <a
+                            href={`https://wa.me/${rawPhone}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 hover:bg-emerald-100 flex items-center gap-1"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                          </a>
+                        )}
+
+                        <button
+                          onClick={() => onSelectLead(h.leadId)}
+                          className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 flex items-center gap-1"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Lead
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => setSelectedDossier(h)}
+                        className="rounded-xl bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-indigo-700 transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Inspect Full Dossier
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Handover Dossier Modal */}
+      {selectedDossier && (
+        <HandoverDossierModal
+          isOpen={!!selectedDossier}
+          onClose={() => setSelectedDossier(null)}
+          handover={selectedDossier}
+          onSelectLead={onSelectLead}
+        />
       )}
     </div>
   );

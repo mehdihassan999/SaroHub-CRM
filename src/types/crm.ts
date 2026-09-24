@@ -70,6 +70,7 @@ export interface ClientRequirements {
   coreProblem?: string;
   existingTechOrUrl?: string;
   keyFeatures?: string[];
+  desiredFeatures?: string[];
   targetUsers?: string;
   preferredPlatform?: string;
   estimatedBudget?: string;
@@ -143,6 +144,11 @@ export interface Lead {
 
   // Handover & technical state
   isHandedOverToCeo?: boolean;
+  handedOverTo?: 'CEO' | 'CTO';
+  handoverStatus?: 'Pending' | 'Accepted' | 'Returned';
+  handoverId?: string;
+  originalInternId?: string;
+  originalInternName?: string;
   hasPendingTechnicalRequest?: boolean;
   clientRequirements?: ClientRequirements;
   proposalDraft?: string;
@@ -228,6 +234,8 @@ export interface HandoverBrief {
   previousCommunicationSummary: string;
   technicalNotes: string;
   nextAction: string;
+  coreProblem?: string;
+  keyObjections?: string;
 }
 
 export interface HandoverAttachment {
@@ -239,7 +247,48 @@ export interface HandoverAttachment {
   fileName?: string;
   fileSize?: string;
   duration?: string;
+  transcript?: string;
+  caption?: string;
+  thumbnailUrl?: string;
   createdAt: string;
+}
+
+export interface HandoverClientProfile {
+  businessName: string;
+  contactPerson: string;
+  phone: string;
+  whatsapp?: string;
+  email?: string;
+  city?: string;
+  country?: string;
+  industry?: string;
+  businessType?: string;
+  website?: string;
+  source?: string;
+}
+
+export interface HandoverWhatClientWants {
+  coreNeed: string;
+  interestedService: string;
+  budget: string;
+  timeline: string;
+  urgency: 'Normal' | 'High' | 'Critical';
+  keyObjections?: string;
+  deliverablesSummary?: string;
+}
+
+export interface AIChatIntelligence {
+  clientNameOrPhone?: string;
+  businessIdentified?: string;
+  coreNeed?: string;
+  productsOrMenu?: string;
+  budgetDiscussed?: string;
+  paymentMethod?: string;
+  urgency?: 'Normal' | 'High' | 'Critical' | string;
+  keyObjectionsOrQuestions?: string;
+  voiceNotesSummary?: string;
+  executiveSummary?: string;
+  cleanedFormattedChat?: string;
 }
 
 export interface HandoverRequest {
@@ -256,10 +305,14 @@ export interface HandoverRequest {
   reason: string;
   summary?: string;
   status: 'Pending' | 'Accepted' | 'Returned' | 'Completed' | 'Pending Review' | 'Declined' | 'Rejected';
-  brief: HandoverBrief;
+  brief?: HandoverBrief;
+  clientProfile?: HandoverClientProfile;
+  whatClientWants?: HandoverWhatClientWants;
   attachments?: HandoverAttachment[];
   previousChats?: string;
+  aiChatIntelligence?: AIChatIntelligence;
   clientUrls?: string[];
+  timelineSnapshot?: TimelineItem[];
   createdAt: string;
   reviewedAt?: string;
   ceoReviewNotes?: string;
